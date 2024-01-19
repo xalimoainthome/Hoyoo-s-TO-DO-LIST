@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hoyoo's TO-DO-LIST</title>
+    <title>TO-DO-LIST made by me</title>
     <style>
         body {
             font-family: 'Roboto', sans-serif;
@@ -66,6 +66,7 @@
         }
 
         li {
+            position: relative;
             padding: 15px;
             border-radius: 6px;
             display: flex;
@@ -93,6 +94,27 @@
             }
         }
 
+        .delete-button {
+            position: absolute;
+            right: 10px;
+            background-color: #555;
+            color: #fff;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.3s ease, opacity 0.5s ease; /* Add opacity transition */
+        }
+
+        .delete-button:hover {
+            background-color: #ff4d4d; /* Blend to red on hover */
+        }
+
+        .fade-out {
+            opacity: 0;
+            transition: opacity 0.5s ease; /* Add opacity transition */
+        }
+
         #mode-toggle {
             position: fixed;
             bottom: 20px;
@@ -108,7 +130,7 @@
 </head>
 <body>
     <div id="todo-container">
-        <h1 style="color: #696c6e;">Hoyoo's TO-DO-LIST</h1> <!-- Accent color for the title -->
+        <h1 style="color: #696c6e;">TO-DO-LIST made by me</h1> <!-- Accent color for the title -->
         <input type="text" id="taskInput" placeholder="write here" onkeydown="addTask(event)">
         <ul id="taskList"></ul>
     </div>
@@ -119,24 +141,68 @@
     </div>
 
     <script>
+        // Load tasks from localStorage on page load
+        window.onload = function() {
+            const savedTasks = JSON.parse(localStorage.getItem('tasks')) || [];
+            const taskList = document.getElementById("taskList");
+
+            savedTasks.forEach(taskValue => {
+                const newTask = createTaskElement(taskValue);
+                taskList.appendChild(newTask);
+            });
+        };
+
         function addTask(event) {
             if (event.key === 'Enter') {
                 const taskInput = document.getElementById("taskInput");
                 const taskValue = taskInput.value.trim();
 
                 if (taskValue !== "") {
-                    const newTask = document.createElement("li");
-                    newTask.textContent = taskValue;
-
+                    const newTask = createTaskElement(taskValue);
                     document.getElementById("taskList").appendChild(newTask);
+
+                    // Save tasks to localStorage
+                    saveTasksToLocalStorage();
 
                     taskInput.value = "";
                 }
             }
         }
 
+        function createTaskElement(taskValue) {
+            const newTask = document.createElement("li");
+            newTask.textContent = taskValue;
+
+            // Create delete button
+            const deleteButton = document.createElement("button");
+            deleteButton.className = "delete-button";
+            deleteButton.textContent = "Delete";
+            deleteButton.onclick = function () {
+                // Add fade-out class to the task element
+                newTask.classList.add("fade-out");
+
+                // Remove the task element from the DOM after the animation
+                setTimeout(() => {
+                    newTask.remove();
+                    // Save tasks to localStorage after deletion
+                    saveTasksToLocalStorage();
+                }, 500);
+            };
+
+            newTask.appendChild(deleteButton);
+
+            return newTask;
+        }
+
         function toggleMode() {
             document.body.classList.toggle("light-mode");
+        }
+
+        function saveTasksToLocalStorage() {
+            const tasks = Array.from(document.getElementById("taskList").children)
+                .map(taskElement => taskElement.textContent);
+
+            localStorage.setItem('tasks', JSON.stringify(tasks));
         }
     </script>
 </body>
